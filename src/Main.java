@@ -35,6 +35,7 @@ public class Main {
         )) {
             System.out.println("Success");
         } catch (SQLException e) {
+            System.out.println("Connection Failed!!");
             throw new RuntimeException(e);
         }
     }
