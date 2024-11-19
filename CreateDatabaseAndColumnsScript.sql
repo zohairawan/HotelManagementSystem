@@ -20,5 +20,6 @@ CREATE TABLE Room (
     actual_check_out_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     room_number INT NOT NULL,
     number_of_beds INT,
+    available TINYINT,
     FOREIGN KEY(guest_id) REFERENCES Guest(guest_id)
 );
