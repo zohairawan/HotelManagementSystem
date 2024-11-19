@@ -1,3 +1,13 @@
+import com.mysql.cj.jdbc.MysqlDataSource;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
+import java.util.Properties;
 import java.util.Scanner;
 
 public class Manager {
@@ -13,11 +23,6 @@ public class Manager {
     BOOK ROOM MENU
     Guest Name:
      */
-
-    public static void main(String[] args) {
-        Manager manager = new Manager();
-        manager.startMenu();
-    }
 
     public void startMenu() {
         System.out.println("1. Book a room");
@@ -60,6 +65,39 @@ public class Manager {
 
         System.out.print("Total # of guests: ");
         int totalNumOfGuests = Integer.parseInt(scanner.nextLine());
+
+        // Load file
+        Properties properties = new Properties();
+        try {
+            properties.load(Files.newInputStream(Path.of("hotel.properties"),
+                    StandardOpenOption.READ));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+        // Set server name, port, and database name
+        MysqlDataSource dataSource = new MysqlDataSource();
+        dataSource.setServerName(properties.getProperty("serverName"));
+        dataSource.setPort(Integer.parseInt(properties.getProperty("port")));
+        dataSource.setDatabaseName(properties.getProperty("databaseName"));
+
+        // Establish connection using username and password
+        try (Connection connection = dataSource.getConnection(
+                properties.getProperty("user"),
+                System.getenv("MYSQL_PASS")
+        )) {
+            System.out.println("Success");
+            String update = "INSERT INTO Guest(first_name,last_name,contact_number) VALUES(?, ?, ?)";
+            PreparedStatement preparedStatement = connection.prepareStatement(update);
+            preparedStatement.setString(1, firstName);
+            preparedStatement.setString(2, lastName);
+            preparedStatement.setString(3, contactNum);
+            int resultSet = preparedStatement.executeUpdate();
+            System.out.println("rows affected: "+resultSet);
+        } catch (SQLException e) {
+            System.out.println("Connection Failed!!");
+            throw new RuntimeException(e);
+        }
     }
 
 }
